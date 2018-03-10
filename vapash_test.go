@@ -1,21 +1,21 @@
 // Copyright 2015 The go-ethereum Authors
 // Copyright 2015 Lefteris Karapetsas <lefteris@refu.co>
-// This file is part of the go-ethereum library.
+// This file is part of the go-vapory library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The go-vapory library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The go-vapory library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-vapory library. If not, see <http://www.gnu.org/licenses/>.
 
-package ethash
+package vapash
 
 import (
 	"bytes"
@@ -27,8 +27,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/vaporyco/go-vapory/common"
+	"github.com/vaporyco/go-vapory/crypto"
 )
 
 func init() {
@@ -85,7 +85,7 @@ var invalidZeroDiffBlock = testBlock{
 	mixDigest:   crypto.Sha3Hash([]byte("bar")),
 }
 
-func TestEthashVerifyValid(t *testing.T) {
+func TestVapashVerifyValid(t *testing.T) {
 	eth := New()
 	for i, block := range validBlocks {
 		if !eth.Verify(block) {
@@ -94,14 +94,14 @@ func TestEthashVerifyValid(t *testing.T) {
 	}
 }
 
-func TestEthashVerifyInvalid(t *testing.T) {
+func TestVapashVerifyInvalid(t *testing.T) {
 	eth := New()
 	if eth.Verify(&invalidZeroDiffBlock) {
 		t.Errorf("should not validate - we just ensure it does not panic on this block")
 	}
 }
 
-func TestEthashConcurrentVerify(t *testing.T) {
+func TestVapashConcurrentVerify(t *testing.T) {
 	eth, err := NewForTesting()
 	if err != nil {
 		t.Fatal(err)
@@ -127,7 +127,7 @@ func TestEthashConcurrentVerify(t *testing.T) {
 	wg.Wait()
 }
 
-func TestEthashConcurrentSearch(t *testing.T) {
+func TestVapashConcurrentSearch(t *testing.T) {
 	eth, err := NewForTesting()
 	if err != nil {
 		t.Fatal(err)
@@ -174,7 +174,7 @@ func TestEthashConcurrentSearch(t *testing.T) {
 	}
 }
 
-func TestEthashSearchAcrossEpoch(t *testing.T) {
+func TestVapashSearchAcrossEpoch(t *testing.T) {
 	eth, err := NewForTesting()
 	if err != nil {
 		t.Fatal(err)
@@ -207,7 +207,7 @@ func TestGetSeedHash(t *testing.T) {
 	}
 
 	// From python:
-	// > from pyethash import get_seedhash
+	// > from pyvapash import get_seedhash
 	// > get_seedhash(30000)
 	expectedSeed1, err := hex.DecodeString("290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563")
 	if err != nil {

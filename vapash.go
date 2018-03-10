@@ -1,27 +1,27 @@
 // Copyright 2015 The go-ethereum Authors
 // Copyright 2015 Lefteris Karapetsas <lefteris@refu.co>
 // Copyright 2015 Matthew Wampler-Doty <matthew.wampler.doty@gmail.com>
-// This file is part of the go-ethereum library.
+// This file is part of the go-vapory library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The go-vapory library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The go-vapory library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-vapory library. If not, see <http://www.gnu.org/licenses/>.
 
-package ethash
+package vapash
 
 /*
-#include "src/libethash/internal.h"
+#include "src/libvapash/internal.h"
 
-int ethashGoCallback_cgo(unsigned);
+int vapashGoCallback_cgo(unsigned);
 */
 import "C"
 
@@ -40,9 +40,9 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/vaporyco/go-vapory/common"
+	"github.com/vaporyco/go-vapory/crypto"
+	"github.com/vaporyco/go-vapory/log"
 )
 
 var (
@@ -64,12 +64,12 @@ func defaultDir() string {
 		home = user.HomeDir
 	}
 	if runtime.GOOS == "windows" {
-		return filepath.Join(home, "AppData", "Ethash")
+		return filepath.Join(home, "AppData", "Vapash")
 	}
-	return filepath.Join(home, ".ethash")
+	return filepath.Join(home, ".vapash")
 }
 
-// cache wraps an ethash_light_t with some metadata
+// cache wraps an vapash_light_t with some metadata
 // and automatic memory management.
 type cache struct {
 	epoch uint64
@@ -77,7 +77,7 @@ type cache struct {
 	test  bool
 
 	gen sync.Once // ensures cache is only generated once.
-	ptr *C.struct_ethash_light
+	ptr *C.struct_vapash_light
 }
 
 // generate creates the actual cache. it can be called from multiple
@@ -88,23 +88,23 @@ func (cache *cache) generate() {
 		started := time.Now()
 		seedHash := makeSeedHash(cache.epoch)
 		log.Debug(fmt.Sprintf("Generating cache for epoch %d (%x)", cache.epoch, seedHash))
-		size := C.ethash_get_cachesize(C.uint64_t(cache.epoch * epochLength))
+		size := C.vapash_get_cachesize(C.uint64_t(cache.epoch * epochLength))
 		if cache.test {
 			size = cacheSizeForTesting
 		}
-		cache.ptr = C.ethash_light_new_internal(size, (*C.ethash_h256_t)(unsafe.Pointer(&seedHash[0])))
+		cache.ptr = C.vapash_light_new_internal(size, (*C.vapash_h256_t)(unsafe.Pointer(&seedHash[0])))
 		runtime.SetFinalizer(cache, freeCache)
 		log.Debug(fmt.Sprintf("Done generating cache for epoch %d, it took %v", cache.epoch, time.Since(started)))
 	})
 }
 
 func freeCache(cache *cache) {
-	C.ethash_light_delete(cache.ptr)
+	C.vapash_light_delete(cache.ptr)
 	cache.ptr = nil
 }
 
 func (cache *cache) compute(dagSize uint64, hash common.Hash, nonce uint64) (ok bool, mixDigest, result common.Hash) {
-	ret := C.ethash_light_compute_internal(cache.ptr, C.uint64_t(dagSize), hashToH256(hash), C.uint64_t(nonce))
+	ret := C.vapash_light_compute_internal(cache.ptr, C.uint64_t(dagSize), hashToH256(hash), C.uint64_t(nonce))
 	// Make sure cache is live until after the C call.
 	// This is important because a GC might happen and execute
 	// the finalizer before the call completes.
@@ -126,7 +126,7 @@ type Light struct {
 
 // Verify checks whether the block's nonce is valid.
 func (l *Light) Verify(block Block) bool {
-	// TODO: do ethash_quick_verify before getCache in order
+	// TODO: do vapash_quick_verify before getCache in order
 	// to prevent DOS attacks.
 	blockNum := block.NumberU64()
 	if blockNum >= epochLength*2048 {
@@ -138,7 +138,7 @@ func (l *Light) Verify(block Block) bool {
 	/* Cannot happen if block header diff is validated prior to PoW, but can
 		 happen if PoW is checked first due to parallel PoW checking.
 		 We could check the minimum valid difficulty but for SoC we avoid (duplicating)
-	   Ethereum protocol consensus rules here which are not in scope of Ethash
+	   Ethereum protocol consensus rules here which are not in scope of Vapash
 	*/
 	if difficulty.Cmp(common.Big0) == 0 {
 		log.Debug("invalid block difficulty")
@@ -146,7 +146,7 @@ func (l *Light) Verify(block Block) bool {
 	}
 
 	cache := l.getCache(blockNum)
-	dagSize := C.ethash_get_datasize(C.uint64_t(blockNum))
+	dagSize := C.vapash_get_datasize(C.uint64_t(blockNum))
 	if l.test {
 		dagSize = dagSizeForTesting
 	}
@@ -166,12 +166,12 @@ func (l *Light) Verify(block Block) bool {
 	return result.Big().Cmp(target) <= 0
 }
 
-func h256ToHash(in C.ethash_h256_t) common.Hash {
+func h256ToHash(in C.vapash_h256_t) common.Hash {
 	return *(*common.Hash)(unsafe.Pointer(&in.b))
 }
 
-func hashToH256(in common.Hash) C.ethash_h256_t {
-	return C.ethash_h256_t{b: *(*[32]C.uint8_t)(unsafe.Pointer(&in[0]))}
+func hashToH256(in common.Hash) C.vapash_h256_t {
+	return C.vapash_h256_t{b: *(*[32]C.uint8_t)(unsafe.Pointer(&in[0]))}
 }
 
 func (l *Light) getCache(blockNum uint64) *cache {
@@ -224,7 +224,7 @@ func (l *Light) getCache(blockNum uint64) *cache {
 	return c
 }
 
-// dag wraps an ethash_full_t with some metadata
+// dag wraps an vapash_full_t with some metadata
 // and automatic memory management.
 type dag struct {
 	epoch uint64
@@ -232,7 +232,7 @@ type dag struct {
 	dir   string
 
 	gen sync.Once // ensures DAG is only generated once.
-	ptr *C.struct_ethash_full
+	ptr *C.struct_vapash_full
 }
 
 // generate creates the actual DAG. it can be called from multiple
@@ -244,8 +244,8 @@ func (d *dag) generate() {
 			started   = time.Now()
 			seedHash  = makeSeedHash(d.epoch)
 			blockNum  = C.uint64_t(d.epoch * epochLength)
-			cacheSize = C.ethash_get_cachesize(blockNum)
-			dagSize   = C.ethash_get_datasize(blockNum)
+			cacheSize = C.vapash_get_cachesize(blockNum)
+			dagSize   = C.vapash_get_datasize(blockNum)
 		)
 		if d.test {
 			cacheSize = cacheSizeForTesting
@@ -257,18 +257,18 @@ func (d *dag) generate() {
 		log.Info(fmt.Sprintf("Generating DAG for epoch %d (size %d) (%x)", d.epoch, dagSize, seedHash))
 		// Generate a temporary cache.
 		// TODO: this could share the cache with Light
-		cache := C.ethash_light_new_internal(cacheSize, (*C.ethash_h256_t)(unsafe.Pointer(&seedHash[0])))
-		defer C.ethash_light_delete(cache)
+		cache := C.vapash_light_new_internal(cacheSize, (*C.vapash_h256_t)(unsafe.Pointer(&seedHash[0])))
+		defer C.vapash_light_delete(cache)
 		// Generate the actual DAG.
-		d.ptr = C.ethash_full_new_internal(
+		d.ptr = C.vapash_full_new_internal(
 			C.CString(d.dir),
 			hashToH256(seedHash),
 			dagSize,
 			cache,
-			(C.ethash_callback_t)(unsafe.Pointer(C.ethashGoCallback_cgo)),
+			(C.vapash_callback_t)(unsafe.Pointer(C.vapashGoCallback_cgo)),
 		)
 		if d.ptr == nil {
-			panic("ethash_full_new IO or memory error")
+			panic("vapash_full_new IO or memory error")
 		}
 		runtime.SetFinalizer(d, freeDAG)
 		log.Info(fmt.Sprintf("Done generating DAG for epoch %d, it took %v", d.epoch, time.Since(started)))
@@ -276,7 +276,7 @@ func (d *dag) generate() {
 }
 
 func freeDAG(d *dag) {
-	C.ethash_full_delete(d.ptr)
+	C.vapash_full_delete(d.ptr)
 	d.ptr = nil
 }
 
@@ -284,8 +284,8 @@ func (d *dag) Ptr() unsafe.Pointer {
 	return unsafe.Pointer(d.ptr.data)
 }
 
-//export ethashGoCallback
-func ethashGoCallback(percent C.unsigned) C.int {
+//export vapashGoCallback
+func vapashGoCallback(percent C.unsigned) C.int {
 	log.Info(fmt.Sprintf("Generating DAG: %d%%", percent))
 	return 0
 }
@@ -364,10 +364,10 @@ func (pow *Full) Search(block Block, stop <-chan struct{}, index int) (nonce uin
 				atomic.AddInt32(&pow.hashRate, hashrateDiff)
 			}
 
-			ret := C.ethash_full_compute(dag.ptr, hash, C.uint64_t(nonce))
+			ret := C.vapash_full_compute(dag.ptr, hash, C.uint64_t(nonce))
 			result := h256ToHash(ret.result).Big()
 
-			// TODO: disagrees with the spec https://github.com/ethereum/wiki/wiki/Ethash#mining
+			// TODO: disagrees with the spec https://github.com/vaporyco/wiki/wiki/Vapash#mining
 			if ret.success && result.Cmp(target) <= 0 {
 				mixDigest = C.GoBytes(unsafe.Pointer(&ret.mix_hash), C.int(32))
 				atomic.AddInt32(&pow.hashRate, -previousHashrate)
@@ -391,22 +391,22 @@ func (pow *Full) Turbo(on bool) {
 	pow.turbo = on
 }
 
-// Ethash combines block verification with Light and
+// Vapash combines block verification with Light and
 // nonce searching with Full into a single proof of work.
-type Ethash struct {
+type Vapash struct {
 	*Light
 	*Full
 }
 
 // New creates an instance of the proof of work.
-func New() *Ethash {
-	return &Ethash{new(Light), &Full{turbo: true}}
+func New() *Vapash {
+	return &Vapash{new(Light), &Full{turbo: true}}
 }
 
 // NewShared creates an instance of the proof of work., where a single instance
 // of the Light cache is shared across all instances created with NewShared.
-func NewShared() *Ethash {
-	return &Ethash{sharedLight, &Full{turbo: true}}
+func NewShared() *Vapash {
+	return &Vapash{sharedLight, &Full{turbo: true}}
 }
 
 // NewForTesting creates a proof of work for use in unit tests.
@@ -415,12 +415,12 @@ func NewShared() *Ethash {
 //
 // Nonces found by a testing instance are not verifiable with a
 // regular-size cache.
-func NewForTesting() (*Ethash, error) {
-	dir, err := ioutil.TempDir("", "ethash-test")
+func NewForTesting() (*Vapash, error) {
+	dir, err := ioutil.TempDir("", "vapash-test")
 	if err != nil {
 		return nil, err
 	}
-	return &Ethash{&Light{test: true}, &Full{Dir: dir, test: true}}, nil
+	return &Vapash{&Light{test: true}, &Full{Dir: dir, test: true}}, nil
 }
 
 func GetSeedHash(blockNum uint64) ([]byte, error) {

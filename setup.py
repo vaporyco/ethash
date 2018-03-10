@@ -3,45 +3,45 @@ import os
 from distutils.core import setup, Extension
 sources = [
     'src/python/core.c',
-    'src/libethash/io.c',
-    'src/libethash/internal.c',
-    'src/libethash/sha3.c']
+    'src/libvapash/io.c',
+    'src/libvapash/internal.c',
+    'src/libvapash/sha3.c']
 if os.name == 'nt':
     sources += [
-        'src/libethash/util_win32.c',
-        'src/libethash/io_win32.c',
-        'src/libethash/mmap_win32.c',
+        'src/libvapash/util_win32.c',
+        'src/libvapash/io_win32.c',
+        'src/libvapash/mmap_win32.c',
     ]
 else:
     sources += [
-        'src/libethash/io_posix.c'
+        'src/libvapash/io_posix.c'
     ]
 depends = [
-    'src/libethash/ethash.h',
-    'src/libethash/compiler.h',
-    'src/libethash/data_sizes.h',
-    'src/libethash/endian.h',
-    'src/libethash/ethash.h',
-    'src/libethash/io.h',
-    'src/libethash/fnv.h',
-    'src/libethash/internal.h',
-    'src/libethash/sha3.h',
-    'src/libethash/util.h',
+    'src/libvapash/vapash.h',
+    'src/libvapash/compiler.h',
+    'src/libvapash/data_sizes.h',
+    'src/libvapash/endian.h',
+    'src/libvapash/vapash.h',
+    'src/libvapash/io.h',
+    'src/libvapash/fnv.h',
+    'src/libvapash/internal.h',
+    'src/libvapash/sha3.h',
+    'src/libvapash/util.h',
 ]
-pyethash = Extension('pyethash',
+pyvapash = Extension('pyvapash',
                      sources=sources,
                      depends=depends,
                      extra_compile_args=["-Isrc/", "-std=gnu99", "-Wall"])
 
 setup(
-    name='pyethash',
+    name='pyvapash',
     author="Matthew Wampler-Doty",
     author_email="matthew.wampler.doty@gmail.com",
     license='GPL',
     version='0.1.23',
-    url='https://github.com/ethereum/ethash',
-    download_url='https://github.com/ethereum/ethash/tarball/v23',
-    description=('Python wrappers for ethash, the ethereum proof of work'
+    url='https://github.com/vaporyco/vapash',
+    download_url='https://github.com/vaporyco/vapash/tarball/v23',
+    description=('Python wrappers for vapash, the ethereum proof of work'
                  'hashing function'),
-    ext_modules=[pyethash],
+    ext_modules=[pyvapash],
 )

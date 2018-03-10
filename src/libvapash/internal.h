@@ -1,7 +1,7 @@
 #pragma once
 #include "compiler.h"
 #include "endian.h"
-#include "ethash.h"
+#include "vapash.h"
 #include <stdio.h>
 
 #define ENABLE_SSE 0
@@ -16,7 +16,7 @@ extern "C" {
 
 // compile time settings
 #define NODE_WORDS (64/4)
-#define MIX_WORDS (ETHASH_MIX_BYTES/4)
+#define MIX_WORDS (VAPASH_MIX_BYTES/4)
 #define MIX_NODES (MIX_WORDS / NODE_WORDS)
 #include <stdint.h>
 
@@ -31,33 +31,33 @@ typedef union node {
 
 } node;
 
-static inline uint8_t ethash_h256_get(ethash_h256_t const* hash, unsigned int i)
+static inline uint8_t vapash_h256_get(vapash_h256_t const* hash, unsigned int i)
 {
 	return hash->b[i];
 }
 
-static inline void ethash_h256_set(ethash_h256_t* hash, unsigned int i, uint8_t v)
+static inline void vapash_h256_set(vapash_h256_t* hash, unsigned int i, uint8_t v)
 {
 	hash->b[i] = v;
 }
 
-static inline void ethash_h256_reset(ethash_h256_t* hash)
+static inline void vapash_h256_reset(vapash_h256_t* hash)
 {
 	memset(hash, 0, 32);
 }
 
 // Returns if hash is less than or equal to boundary (2^256/difficulty)
-static inline bool ethash_check_difficulty(
-	ethash_h256_t const* hash,
-	ethash_h256_t const* boundary
+static inline bool vapash_check_difficulty(
+	vapash_h256_t const* hash,
+	vapash_h256_t const* boundary
 )
 {
 	// Boundary is big endian
 	for (int i = 0; i < 32; i++) {
-		if (ethash_h256_get(hash, i) == ethash_h256_get(boundary, i)) {
+		if (vapash_h256_get(hash, i) == vapash_h256_get(boundary, i)) {
 			continue;
 		}
-		return ethash_h256_get(hash, i) < ethash_h256_get(boundary, i);
+		return vapash_h256_get(hash, i) < vapash_h256_get(boundary, i);
 	}
 	return true;
 }
@@ -71,29 +71,29 @@ static inline bool ethash_check_difficulty(
  * @param boundary         The boundary is defined as (2^256 / difficulty)
  * @return                 true for succesful pre-verification and false otherwise
  */
-bool ethash_quick_check_difficulty(
-	ethash_h256_t const* header_hash,
+bool vapash_quick_check_difficulty(
+	vapash_h256_t const* header_hash,
 	uint64_t const nonce,
-	ethash_h256_t const* mix_hash,
-	ethash_h256_t const* boundary
+	vapash_h256_t const* mix_hash,
+	vapash_h256_t const* boundary
 );
 
-struct ethash_light {
+struct vapash_light {
 	void* cache;
 	uint64_t cache_size;
 	uint64_t block_number;
 };
 
 /**
- * Allocate and initialize a new ethash_light handler. Internal version
+ * Allocate and initialize a new vapash_light handler. Internal version
  *
  * @param cache_size    The size of the cache in bytes
  * @param seed          Block seedhash to be used during the computation of the
  *                      cache nodes
- * @return              Newly allocated ethash_light handler or NULL in case of
- *                      ERRNOMEM or invalid parameters used for @ref ethash_compute_cache_nodes()
+ * @return              Newly allocated vapash_light handler or NULL in case of
+ *                      ERRNOMEM or invalid parameters used for @ref vapash_compute_cache_nodes()
  */
-ethash_light_t ethash_light_new_internal(uint64_t cache_size, ethash_h256_t const* seed);
+vapash_light_t vapash_light_new_internal(uint64_t cache_size, vapash_h256_t const* seed);
 
 /**
  * Calculate the light client data. Internal version.
@@ -104,74 +104,74 @@ ethash_light_t ethash_light_new_internal(uint64_t cache_size, ethash_h256_t cons
  * @param nonce          The nonce to pack into the mix
  * @return               The resulting hash.
  */
-ethash_return_value_t ethash_light_compute_internal(
-	ethash_light_t light,
+vapash_return_value_t vapash_light_compute_internal(
+	vapash_light_t light,
 	uint64_t full_size,
-	ethash_h256_t const header_hash,
+	vapash_h256_t const header_hash,
 	uint64_t nonce
 );
 
-struct ethash_full {
+struct vapash_full {
 	FILE* file;
 	uint64_t file_size;
 	node* data;
 };
 
 /**
- * Allocate and initialize a new ethash_full handler. Internal version.
+ * Allocate and initialize a new vapash_full handler. Internal version.
  *
  * @param dirname        The directory in which to put the DAG file.
  * @param seedhash       The seed hash of the block. Used in the DAG file naming.
  * @param full_size      The size of the full data in bytes.
- * @param cache          A cache object to use that was allocated with @ref ethash_cache_new().
- *                       Iff this function succeeds the ethash_full_t will take memory
+ * @param cache          A cache object to use that was allocated with @ref vapash_cache_new().
+ *                       Iff this function succeeds the vapash_full_t will take memory
  *                       memory ownership of the cache and free it at deletion. If
  *                       not then the user still has to handle freeing of the cache himself.
- * @param callback       A callback function with signature of @ref ethash_callback_t
+ * @param callback       A callback function with signature of @ref vapash_callback_t
  *                       It accepts an unsigned with which a progress of DAG calculation
  *                       can be displayed. If all goes well the callback should return 0.
  *                       If a non-zero value is returned then DAG generation will stop.
- * @return               Newly allocated ethash_full handler or NULL in case of
- *                       ERRNOMEM or invalid parameters used for @ref ethash_compute_full_data()
+ * @return               Newly allocated vapash_full handler or NULL in case of
+ *                       ERRNOMEM or invalid parameters used for @ref vapash_compute_full_data()
  */
-ethash_full_t ethash_full_new_internal(
+vapash_full_t vapash_full_new_internal(
 	char const* dirname,
-	ethash_h256_t const seed_hash,
+	vapash_h256_t const seed_hash,
 	uint64_t full_size,
-	ethash_light_t const light,
-	ethash_callback_t callback
+	vapash_light_t const light,
+	vapash_callback_t callback
 );
 
-void ethash_calculate_dag_item(
+void vapash_calculate_dag_item(
 	node* const ret,
 	uint32_t node_index,
-	ethash_light_t const cache
+	vapash_light_t const cache
 );
 
-void ethash_quick_hash(
-	ethash_h256_t* return_hash,
-	ethash_h256_t const* header_hash,
+void vapash_quick_hash(
+	vapash_h256_t* return_hash,
+	vapash_h256_t const* header_hash,
 	const uint64_t nonce,
-	ethash_h256_t const* mix_hash
+	vapash_h256_t const* mix_hash
 );
 
-uint64_t ethash_get_datasize(uint64_t const block_number);
-uint64_t ethash_get_cachesize(uint64_t const block_number);
+uint64_t vapash_get_datasize(uint64_t const block_number);
+uint64_t vapash_get_cachesize(uint64_t const block_number);
 
 /**
  * Compute the memory data for a full node's memory
  *
- * @param mem         A pointer to an ethash full's memory
+ * @param mem         A pointer to an vapash full's memory
  * @param full_size   The size of the full data in bytes
  * @param cache       A cache object to use in the calculation
- * @param callback    The callback function. Check @ref ethash_full_new() for details.
+ * @param callback    The callback function. Check @ref vapash_full_new() for details.
  * @return            true if all went fine and false for invalid parameters
  */
-bool ethash_compute_full_data(
+bool vapash_compute_full_data(
 	void* mem,
 	uint64_t full_size,
-	ethash_light_t const light,
-	ethash_callback_t callback
+	vapash_light_t const light,
+	vapash_callback_t callback
 );
 
 #ifdef __cplusplus

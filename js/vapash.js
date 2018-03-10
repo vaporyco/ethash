@@ -1,4 +1,4 @@
-// ethash.js
+// vapash.js
 // Tim Hughes <tim@twistedfury.com>
 // Revision 19
 
@@ -137,7 +137,7 @@ exports.defaultParams = function()
 	};
 };
 
-exports.Ethash = function(params, seed)
+exports.Vapash = function(params, seed)
 {
 	// precompute cache and related values
 	seed = convertSeed(seed);

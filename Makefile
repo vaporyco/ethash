@@ -3,4 +3,4 @@ test:
 	./test/test.sh
 
 clean:
-	rm -rf *.so pyethash.egg-info/ build/ test/python/python-virtual-env/ test/c/build/ pyethash.so test/python/*.pyc dist/ MANIFEST
+	rm -rf *.so pyvapash.egg-info/ build/ test/python/python-virtual-env/ test/c/build/ pyvapash.so test/python/*.pyc dist/ MANIFEST
