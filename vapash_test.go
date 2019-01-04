@@ -86,30 +86,30 @@ var invalidZeroDiffBlock = testBlock{
 }
 
 func TestVapashVerifyValid(t *testing.T) {
-	eth := New()
+	vap := New()
 	for i, block := range validBlocks {
-		if !eth.Verify(block) {
+		if !vap.Verify(block) {
 			t.Errorf("block %d (%x) did not validate.", i, block.hashNoNonce[:6])
 		}
 	}
 }
 
 func TestVapashVerifyInvalid(t *testing.T) {
-	eth := New()
-	if eth.Verify(&invalidZeroDiffBlock) {
+	vap := New()
+	if vap.Verify(&invalidZeroDiffBlock) {
 		t.Errorf("should not validate - we just ensure it does not panic on this block")
 	}
 }
 
 func TestVapashConcurrentVerify(t *testing.T) {
-	eth, err := NewForTesting()
+	vap, err := NewForTesting()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(eth.Full.Dir)
+	defer os.RemoveAll(vap.Full.Dir)
 
 	block := &testBlock{difficulty: big.NewInt(10)}
-	nonce, md := eth.Search(block, nil, 0)
+	nonce, md := vap.Search(block, nil, 0)
 	block.nonce = nonce
 	block.mixDigest = common.BytesToHash(md)
 
@@ -118,7 +118,7 @@ func TestVapashConcurrentVerify(t *testing.T) {
 	wg.Add(100)
 	for i := 0; i < 100; i++ {
 		go func() {
-			if !eth.Verify(block) {
+			if !vap.Verify(block) {
 				t.Error("Block could not be verified")
 			}
 			wg.Done()
@@ -128,12 +128,12 @@ func TestVapashConcurrentVerify(t *testing.T) {
 }
 
 func TestVapashConcurrentSearch(t *testing.T) {
-	eth, err := NewForTesting()
+	vap, err := NewForTesting()
 	if err != nil {
 		t.Fatal(err)
 	}
-	eth.Turbo(true)
-	defer os.RemoveAll(eth.Full.Dir)
+	vap.Turbo(true)
+	defer os.RemoveAll(vap.Full.Dir)
 
 	type searchRes struct {
 		n  uint64
@@ -152,7 +152,7 @@ func TestVapashConcurrentSearch(t *testing.T) {
 	// launch n searches concurrently.
 	for i := 0; i < nsearch; i++ {
 		go func() {
-			nonce, md := eth.Search(block, stop, 0)
+			nonce, md := vap.Search(block, stop, 0)
 			select {
 			case found <- searchRes{n: nonce, md: md}:
 			case <-stop:
@@ -169,25 +169,25 @@ func TestVapashConcurrentSearch(t *testing.T) {
 
 	block.nonce = res.n
 	block.mixDigest = common.BytesToHash(res.md)
-	if !eth.Verify(block) {
+	if !vap.Verify(block) {
 		t.Error("Block could not be verified")
 	}
 }
 
 func TestVapashSearchAcrossEpoch(t *testing.T) {
-	eth, err := NewForTesting()
+	vap, err := NewForTesting()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(eth.Full.Dir)
+	defer os.RemoveAll(vap.Full.Dir)
 
 	for i := epochLength - 40; i < epochLength+40; i++ {
 		block := &testBlock{number: i, difficulty: big.NewInt(90)}
 		rand.Read(block.hashNoNonce[:])
-		nonce, md := eth.Search(block, nil, 0)
+		nonce, md := vap.Search(block, nil, 0)
 		block.nonce = nonce
 		block.mixDigest = common.BytesToHash(md)
-		if !eth.Verify(block) {
+		if !vap.Verify(block) {
 			t.Fatalf("Block could not be verified")
 		}
 	}
