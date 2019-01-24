@@ -3,7 +3,7 @@
 
 # Vapash
 
-For details on this project, please see the Ethereum wiki:
+For details on this project, please see the Vapory wiki:
 https://github.com/vaporyco/wiki/wiki/Vapash
 
 ### Coding Style for C++ code:
