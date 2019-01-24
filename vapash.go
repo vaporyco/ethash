@@ -138,7 +138,7 @@ func (l *Light) Verify(block Block) bool {
 	/* Cannot happen if block header diff is validated prior to PoW, but can
 		 happen if PoW is checked first due to parallel PoW checking.
 		 We could check the minimum valid difficulty but for SoC we avoid (duplicating)
-	   Ethereum protocol consensus rules here which are not in scope of Vapash
+	   Vapory protocol consensus rules here which are not in scope of Vapash
 	*/
 	if difficulty.Cmp(common.Big0) == 0 {
 		log.Debug("invalid block difficulty")
