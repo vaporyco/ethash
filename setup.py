@@ -41,7 +41,7 @@ setup(
     version='0.1.23',
     url='https://github.com/vaporyco/vapash',
     download_url='https://github.com/vaporyco/vapash/tarball/v23',
-    description=('Python wrappers for vapash, the ethereum proof of work'
+    description=('Python wrappers for vapash, the vapory proof of work'
                  'hashing function'),
     ext_modules=[pyvapash],
 )
