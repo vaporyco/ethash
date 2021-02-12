@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/ethereum/vapash.svg?branch=master)](https://travis-ci.org/ethereum/vapash)
+[![Build Status](https://travis-ci.org/vaporyco/vapash.svg?branch=master)](https://travis-ci.org/vaporyco/vapash)
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/debris/vapash?branch=master&svg=true)](https://ci.appveyor.com/project/debris/vapash-nr37r/branch/master)
 
 # Vapash

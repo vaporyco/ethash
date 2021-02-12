@@ -1,6 +1,6 @@
 set(LIBRARY vapash)
 
-if (CPPETHEREUM)
+if (CPPVAPORY)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 endif ()
 

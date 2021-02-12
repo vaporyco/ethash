@@ -1,4 +1,4 @@
-// Copyright 2014 The go-ethereum Authors
+// Copyright 2014 The go-vapory Authors
 // This file is part of the go-vapory library.
 //
 // The go-vapory library is free software: you can redistribute it and/or modify
@@ -69,7 +69,7 @@ func Keccak512(data ...[]byte) []byte {
 // Deprecated: For backward compatibility as other packages depend on these
 func Sha3Hash(data ...[]byte) common.Hash { return Keccak256Hash(data...) }
 
-// Creates an ethereum address given the bytes and the nonce
+// Creates an vapory address given the bytes and the nonce
 func CreateAddress(b common.Address, nonce uint64) common.Address {
 	data, _ := rlp.EncodeToBytes([]interface{}{b, nonce})
 	return common.BytesToAddress(Keccak256(data)[12:])
